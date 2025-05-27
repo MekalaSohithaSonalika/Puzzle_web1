@@ -316,6 +316,239 @@ function renderGrid(grid) {
     container.appendChild(gridDiv);
 }
 
+function renderLetters(word) {
+    const letterContainer = document.getElementById('letterContainer');
+    letterContainer.innerHTML = '<h3>Letters to Place:</h3>';
+    const lettersDiv = document.createElement('div');
+    lettersDiv.className = 'letters-display';
+
+    word.toUpperCase().split('').forEach(char => {
+        if (letters[char]) {
+            const letterBox = document.createElement('div');
+            letterBox.className = 'letter-box';
+            letterBox.style.backgroundColor = getColor(char);
+            letterBox.textContent = char;
+            lettersDiv.appendChild(letterBox);
+        }
+    });
+    letterContainer.appendChild(lettersDiv);
+}
+
+function renderIndividualLetters(word) {
+    const letterContainer = document.getElementById('letterContainer');
+    letterContainer.innerHTML = '<h3>Letters to Place:</h3>';
+    const lettersDiv = document.createElement('div');
+    lettersDiv.className = 'letters-display';
+
+    word.toUpperCase().split('').forEach(char => {
+        if (letters[char]) {
+            const letterBox = document.createElement('div');
+            letterBox.className = 'letter-shape-container';
+            
+            // Add letter label
+            const label = document.createElement('div');
+            label.className = 'letter-label';
+            label.textContent = char;
+            letterBox.appendChild(label);
+            
+            // Get letter shape and calculate dimensions
+            const letterPoints = letters[char];
+            const maxY = Math.max(...letterPoints.map(([y]) => y)) + 1;
+            const maxX = Math.max(...letterPoints.map(([,x]) => x)) + 1;
+            
+            // Create grid for single letter
+            const gridDiv = document.createElement('div');
+            gridDiv.className = 'letter-grid';
+            gridDiv.style.gridTemplateColumns = `repeat(${maxX}, var(--cell-size))`;
+            
+            const letterColor = getColor(char);
+            
+            // Create all cells
+            for (let y = 0; y < maxY; y++) {
+                for (let x = 0; x < maxX; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'letter-cell';
+                    if (letterPoints.some(([py, px]) => py === y && px === x)) {
+                        cell.classList.add('filled');
+                        cell.style.backgroundColor = letterColor;
+                    }
+                    gridDiv.appendChild(cell);
+                }
+            }
+            
+            letterBox.appendChild(gridDiv);
+            lettersDiv.appendChild(letterBox);
+        }
+    });
+    letterContainer.appendChild(lettersDiv);
+}
+
+function renderEmptyGrid(grid) {
+    const container = document.getElementById('emptyGridContainer');
+    container.innerHTML = '<h3>Empty Grid:</h3>';
+    
+    const rows = grid.length;
+    const cols = grid[0].length;
+    
+    const gridDiv = document.createElement('div');
+    gridDiv.className = 'empty-grid';
+    gridDiv.style.gridTemplateColumns = `repeat(${cols}, var(--cell-size))`;
+    
+    // Set CSS variables for grid styling
+    gridDiv.style.setProperty('--cols', cols);
+    gridDiv.style.setProperty('--last-row', (rows * cols) - cols + 1);
+    
+    // Create cells
+    for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell empty';
+            gridDiv.appendChild(cell);
+        }
+    }
+    
+    container.appendChild(gridDiv);
+}
+
+function downloadPuzzle(word, grid) {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    const cellSize = 40;
+    const gridGap = 1;
+    const padding = 50;
+    const letterSpacing = 30;
+    
+    // Calculate dimensions for letters
+    const letterShapes = word.toUpperCase().split('')
+        .map(char => letters[char])
+        .filter(Boolean);
+    
+    const letterDimensions = letterShapes.map(shape => ({
+        width: Math.max(...shape.map(([,x]) => x)) + 1,
+        height: Math.max(...shape.map(([y]) => y)) + 1
+    }));
+    
+    // Calculate canvas dimensions
+    const totalLettersWidth = letterDimensions.reduce((sum, dim, i) => {
+        const width = dim.width * cellSize;
+        return sum + width + (i < letterDimensions.length - 1 ? letterSpacing : 0);
+    }, 0);
+    
+    const maxLetterHeight = Math.max(...letterDimensions.map(dim => dim.height)) * cellSize;
+    const gridWidth = grid[0].length * cellSize;
+    const gridHeight = grid.length * cellSize;
+    
+    // Set canvas size
+    canvas.width = Math.max(totalLettersWidth + (padding * 2), gridWidth + (padding * 2));
+    canvas.height = maxLetterHeight + gridHeight + (padding * 4) + 60; // Extra space for titles
+    
+    // White background
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw "Letters to Place:" title
+    ctx.fillStyle = 'black';
+    ctx.font = 'bold 24px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Letters to Place:', canvas.width / 2, padding);
+    
+    // Draw individual letters with labels
+    let xOffset = (canvas.width - totalLettersWidth) / 2;
+    word.toUpperCase().split('').forEach((char, index) => {
+        if (letters[char]) {
+            // Draw letter label
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = 'black';
+            ctx.fillText(char, xOffset + (letterDimensions[index].width * cellSize) / 2, padding + 40);
+            
+            const shape = letters[char];
+            const letterColor = getColor(char);
+            
+            // Draw letter grid
+            shape.forEach(([y, x]) => {
+                ctx.fillStyle = letterColor;
+                ctx.fillRect(
+                    xOffset + (x * cellSize),
+                    padding + 50 + (y * cellSize),
+                    cellSize - 1,
+                    cellSize - 1
+                );
+            });
+            
+            // Draw grid lines
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 1;
+            for (let y = 0; y <= letterDimensions[index].height; y++) {
+                for (let x = 0; x <= letterDimensions[index].width; x++) {
+                    ctx.strokeRect(
+                        xOffset + (x * cellSize),
+                        padding + 50 + (y * cellSize),
+                        cellSize,
+                        cellSize
+                    );
+                }
+            }
+            
+            xOffset += (letterDimensions[index].width * cellSize) + letterSpacing;
+        }
+    });
+    
+    // Draw "Empty Grid:" title
+    ctx.fillStyle = 'black';
+    ctx.font = 'bold 24px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Empty Grid:', canvas.width / 2, padding * 3 + maxLetterHeight + 30);
+    
+    // Draw empty grid
+    const gridY = padding * 3 + maxLetterHeight + 60;
+    const gridXOffset = (canvas.width - (gridWidth + gridGap * (grid[0].length + 1))) / 2;
+    
+    // Draw grid background (creates gaps)
+    ctx.fillStyle = 'black';
+    ctx.fillRect(
+        gridXOffset,
+        gridY,
+        gridWidth + gridGap * (grid[0].length + 1),
+        gridHeight + gridGap * (grid.length + 1)
+    );
+    
+    // Draw white cells
+    for (let y = 0; y < grid.length; y++) {
+        for (let x = 0; x < grid[0].length; x++) {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(
+                gridXOffset + gridGap + (x * (cellSize + gridGap)),
+                gridY + gridGap + (y * (cellSize + gridGap)),
+                cellSize,
+                cellSize
+            );
+        }
+    }
+    
+    // Draw grid lines
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 2;
+    
+    for (let y = 0; y < grid.length; y++) {
+        for (let x = 0; x < grid[0].length; x++) {
+            ctx.strokeRect(
+                gridXOffset + gridGap + (x * (cellSize + gridGap)),
+                gridY + gridGap + (y * (cellSize + gridGap)),
+                cellSize,
+                cellSize
+            );
+        }
+    }
+    
+    // Create download link
+    const link = document.createElement('a');
+    link.download = 'puzzle.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+}
+
 // Event listener
 document.getElementById('generateBtn').addEventListener('click', () => {
     colorMap.clear();
@@ -326,8 +559,42 @@ document.getElementById('generateBtn').addEventListener('click', () => {
     setTimeout(() => {
         const word = document.getElementById('wordInput').value.trim();
         const grid = fastPack(word);
-        renderGrid(grid);
+        
+        if (grid) {
+            renderIndividualLetters(word);  // Changed from renderLetters to renderIndividualLetters
+            renderEmptyGrid(grid);
+            renderGrid(grid);
+            document.getElementById('gridContainer').classList.add('hidden');
+            document.getElementById('downloadBtn').style.display = 'inline-block';
+            document.getElementById('toggleSolutionBtn').style.display = 'inline-block';
+        } else {
+            document.getElementById('letterContainer').innerHTML = 'No solution found.';
+            document.getElementById('emptyGridContainer').innerHTML = '';
+            document.getElementById('gridContainer').innerHTML = '';
+        }
+        
         btn.classList.remove('loading');
         btn.disabled = false;
     }, 10);
+});
+
+document.getElementById('downloadBtn').addEventListener('click', () => {
+    const word = document.getElementById('wordInput').value.trim();
+    const grid = fastPack(word);
+    if (grid) {
+        downloadPuzzle(word, grid);
+    }
+});
+
+document.getElementById('toggleSolutionBtn').addEventListener('click', () => {
+    const gridContainer = document.getElementById('gridContainer');
+    const btn = document.getElementById('toggleSolutionBtn');
+    
+    if (gridContainer.classList.contains('hidden')) {
+        gridContainer.classList.remove('hidden');
+        btn.textContent = 'Hide Solution';
+    } else {
+        gridContainer.classList.add('hidden');
+        btn.textContent = 'View Solution';
+    }
 });
