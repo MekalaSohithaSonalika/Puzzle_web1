@@ -142,4 +142,28 @@ h3 {
 #downloadBtn, #toggleSolutionBtn {
     display: none;
     margin: 0 10px;
+    padding: 8px 16px;
+    font-size: 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#downloadBtn {
+    background-color: #2196F3;
+    color: white;
+}
+
+#downloadBtn:hover {
+    background-color: #1976D2;
+}
+
+#toggleSolutionBtn {
+    background-color: #9C27B0;
+    color: white;
+}
+
+#toggleSolutionBtn:hover {
+    background-color: #7B1FA2;
 }
