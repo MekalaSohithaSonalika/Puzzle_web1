@@ -7,8 +7,14 @@
 <body>
     <h1>Letter Packing</h1>
     <input type="text" id="wordInput" placeholder="Enter a word">
-    <button id="generateBtn">Generate Grid</button>
-    <div id="gridContainer"></div>
+    <button id="generateBtn">Generate Puzzle</button>
+    <div id="letterContainer"></div>
+    <div id="emptyGridContainer"></div>
+    <div class="button-container">
+        <button id="downloadBtn">Download Puzzle</button>
+        <button id="toggleSolutionBtn">View Solution</button>
+    </div>
+    <div id="gridContainer" class="hidden"></div>
     <script src="script.js"></script>
 </body>
 </html>
