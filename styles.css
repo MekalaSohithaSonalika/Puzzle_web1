@@ -54,3 +54,92 @@ body {
   font-weight: bold;
   margin-bottom: 10px;
 }
+
+:root {
+    --cell-size: 40px;
+    --grid-gap: 1px;  /* Define consistent gap size */
+}
+
+.letters-display {
+    display: flex;
+    gap: 30px;
+    margin: 20px 0;
+    justify-content: center;
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+
+.letter-shape-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.letter-label {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.letter-grid {
+    display: grid;
+    gap: var(--grid-gap);
+    background: white;
+}
+
+.letter-cell {
+    width: var(--cell-size);
+    height: var(--cell-size);
+    background: white;
+    box-sizing: border-box;
+}
+
+.letter-cell.filled {
+    border: none;
+}
+
+.empty-grid {
+    display: grid;
+    gap: var(--grid-gap);
+    margin: 20px auto;
+    width: fit-content;
+    background: black;  /* Set background to create gaps */
+    padding: var(--grid-gap);  /* Add padding to create outer border */
+}
+
+.grid-cell.empty {
+    width: var(--cell-size);
+    height: var(--cell-size);
+    background: white;
+    box-sizing: border-box;
+}
+
+/* Remove right border from last column */
+.grid-cell.empty:nth-child(var(--cols)) {
+    border-right: none;
+}
+
+/* Remove bottom border from last row */
+.grid-cell.empty:nth-child(n+var(--last-row)) {
+    border-bottom: none;
+}
+
+.hidden {
+    display: none;
+}
+
+h3 {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.button-container {
+    margin: 20px 0;
+    text-align: center;
+}
+
+#downloadBtn, #toggleSolutionBtn {
+    display: none;
+    margin: 0 10px;
+}
